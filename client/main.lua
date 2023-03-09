@@ -159,7 +159,7 @@ function OpenMechanicActionsMenu()
 			OpenGetStocksMenu()
 		elseif element.value == 'boss_actions' then
 			TriggerEvent('esx_society:openBossMenu', 'mechanic', function(data, menu)
-				menu.close()
+			      ESX.CloseContext()
 			end)
 		end
 	end, function(menu)
@@ -255,7 +255,7 @@ function OpenMobileMechanicActionsMenu()
 					if closestPlayer == -1 or closestDistance > 3.0 then
 						ESX.ShowNotification(TranslateCap('no_players_nearby'), "error")
 					else
-						menu.close()
+						ESX.CloseContext()
 						TriggerServerEvent('esx_billing:sendBill', GetPlayerServerId(closestPlayer), 'society_mechanic', TranslateCap('mechanic'), amount)
 					end
 				end
