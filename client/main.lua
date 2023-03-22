@@ -682,6 +682,7 @@ AddEventHandler('esx_mechanicjob:hasEnteredMarker', function(zone)
 			CurrentActionData = {vehicle = vehicle}
 		end
 	end
+	ESX.TextUI(CurrentActionMsg)
 end)
 
 AddEventHandler('esx_mechanicjob:hasExitedMarker', function(zone)
@@ -699,6 +700,7 @@ AddEventHandler('esx_mechanicjob:hasExitedMarker', function(zone)
 
 	CurrentAction = nil
 	ESX.CloseContext()
+	ESX.HideUI()
 end)
 
 AddEventHandler('esx_mechanicjob:hasEnteredEntityZone', function(entity)
@@ -708,6 +710,7 @@ AddEventHandler('esx_mechanicjob:hasEnteredEntityZone', function(entity)
 		CurrentAction     = 'remove_entity'
 		CurrentActionMsg  = TranslateCap('press_remove_obj')
 		CurrentActionData = {entity = entity}
+		ESX.TextUI(CurrentActionMsg)
 	end
 end)
 
@@ -715,6 +718,7 @@ AddEventHandler('esx_mechanicjob:hasExitedEntityZone', function(entity)
 	if CurrentAction == 'remove_entity' then
 		CurrentAction = nil
 	end
+	ESX.HideUI()
 end)
 
 RegisterNetEvent('esx_phone:loaded')
