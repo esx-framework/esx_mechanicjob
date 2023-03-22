@@ -887,8 +887,6 @@ CreateThread(function()
 	local sleep = 500
 		if CurrentAction then
 			sleep = 0
-			ESX.ShowHelpNotification(CurrentActionMsg)
-
 			if IsControlJustReleased(0, 38) and ESX.PlayerData.job and ESX.PlayerData.job.name == 'mechanic' then
 				if CurrentAction == 'mechanic_actions_menu' then
 					OpenMechanicActionsMenu()
