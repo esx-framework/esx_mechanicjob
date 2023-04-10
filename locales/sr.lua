@@ -1,4 +1,4 @@
-Locales['en'] = {
+Locales['sr'] = {
   ['mechanic']                  = 'mehaničar',
   ['drive_to_indicated']        = 'Vozite do označene lokacije.',
   ['mission_canceled']          = 'Misija prekinuta',
