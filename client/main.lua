@@ -14,41 +14,41 @@ function SelectRandomTowable()
 	end
 end
 
-function StartNPCJob()
-	NPCOnJob = true
+if Config.EnableNPCJobs then
+	function StartNPCJob()
+		NPCOnJob = true
 
-	NPCTargetTowableZone = SelectRandomTowable()
-	local zone = Config.Zones[NPCTargetTowableZone]
+		NPCTargetTowableZone = SelectRandomTowable()
+		local zone = Config.Zones[NPCTargetTowableZone]
 
-	Blips['NPCTargetTowableZone'] = AddBlipForCoord(zone.Pos.x,  zone.Pos.y,  zone.Pos.z)
-	SetBlipRoute(Blips['NPCTargetTowableZone'], true)
+		Blips['NPCTargetTowableZone'] = AddBlipForCoord(zone.Pos.x,  zone.Pos.y,  zone.Pos.z)
+		SetBlipRoute(Blips['NPCTargetTowableZone'], true)
 
-	ESX.ShowNotification(TranslateCap('drive_to_indicated'))
-end
-
-function StopNPCJob(cancel)
-	if Blips['NPCTargetTowableZone'] then
-		RemoveBlip(Blips['NPCTargetTowableZone'])
-		Blips['NPCTargetTowableZone'] = nil
+		ESX.ShowNotification(TranslateCap('drive_to_indicated'))
 	end
 
-	if Blips['NPCDelivery'] then
-		RemoveBlip(Blips['NPCDelivery'])
-		Blips['NPCDelivery'] = nil
-	end
+	function StopNPCJob(cancel)
+		if Blips['NPCTargetTowableZone'] then
+			RemoveBlip(Blips['NPCTargetTowableZone'])
+			Blips['NPCTargetTowableZone'] = nil
+		end
 
-	Config.Zones.VehicleDelivery.Type = -1
+		if Blips['NPCDelivery'] then
+			RemoveBlip(Blips['NPCDelivery'])
+			Blips['NPCDelivery'] = nil
+		end
 
-	NPCOnJob = false
-	NPCTargetTowable  = nil
-	NPCTargetTowableZone = nil
-	NPCHasSpawnedTowable = false
-	NPCHasBeenNextToTowable = false
+		Config.Zones.VehicleDelivery.Type = -1
 
-	if cancel then
-		ESX.ShowNotification(TranslateCap('mission_canceled'), "error")
-	else
-		--TriggerServerEvent('esx_mechanicjob:onNPCJobCompleted')
+		NPCOnJob = false
+		NPCTargetTowable  = nil
+		NPCTargetTowableZone = nil
+		NPCHasSpawnedTowable = false
+		NPCHasBeenNextToTowable = false
+
+		if cancel then
+			ESX.ShowNotification(TranslateCap('mission_canceled'), "error")
+		end
 	end
 end
 
@@ -379,7 +379,7 @@ function OpenMobileMechanicActionsMenu()
 								CurrentlyTowedVehicle = targetVehicle
 								ESX.ShowNotification(TranslateCap('vehicle_success_attached'))
 
-								if NPCOnJob then
+								if Config.EnableNPCJobs and NPCOnJob then
 									if NPCTargetTowable == targetVehicle then
 										ESX.ShowNotification(TranslateCap('please_drop_off'))
 										Config.Zones.VehicleDelivery.Type = 1
@@ -404,7 +404,7 @@ function OpenMobileMechanicActionsMenu()
 					AttachEntityToEntity(CurrentlyTowedVehicle, vehicle, 20, -0.5, -12.0, 1.0, 0.0, 0.0, 0.0, false, false, false, false, 20, true)
 					DetachEntity(CurrentlyTowedVehicle, true, true)
 
-					if NPCOnJob then
+					if Config.EnableNPCJobs and NPCOnJob then
 						if NPCTargetDeleterZone then
 
 							if CurrentlyTowedVehicle == NPCTargetTowable then
@@ -924,29 +924,30 @@ RegisterCommand('mechanicMenu', function()
 end, false)
 
 
-
-RegisterCommand('mechanicjob', function()
-	local playerPed = PlayerPedId()
-		if ESX.PlayerData.job and ESX.PlayerData.job.name == 'mechanic' then
-			if NPCOnJob then
-				if GetGameTimer() - NPCLastCancel > 5 * 60000 then
-					StopNPCJob(true)
-					NPCLastCancel = GetGameTimer()
+if Config.EnableNPCJobs then
+	RegisterCommand('mechanicjob', function()
+		local playerPed = PlayerPedId()
+			if ESX.PlayerData.job and ESX.PlayerData.job.name == 'mechanic' then
+				if NPCOnJob then
+					if GetGameTimer() - NPCLastCancel > 5 * 60000 then
+						StopNPCJob(true)
+						NPCLastCancel = GetGameTimer()
+					else
+						ESX.ShowNotification(TranslateCap('wait_five'), "error")
+					end
 				else
-					ESX.ShowNotification(TranslateCap('wait_five'), "error")
-				end
-			else
-				if IsPedInAnyVehicle(playerPed, false) and IsVehicleModel(GetVehiclePedIsIn(playerPed, false), `flatbed`) then
-					StartNPCJob()
-				else
-					ESX.ShowNotification(TranslateCap('must_in_flatbed'), "error")
+					if IsPedInAnyVehicle(playerPed, false) and IsVehicleModel(GetVehiclePedIsIn(playerPed, false), `flatbed`) then
+						StartNPCJob()
+					else
+						ESX.ShowNotification(TranslateCap('must_in_flatbed'), "error")
+					end
 				end
 			end
-		end
-end, false)
+	end, false)
+	RegisterKeyMapping('mechanicjob', 'Togggle NPC Job', 'keyboard', 'F6')
+end
 
 RegisterKeyMapping('mechanicMenu', 'Open Mechanic Menu', 'keyboard', 'F6')
-RegisterKeyMapping('mechanicjob', 'Togggle NPC Job', 'keyboard', 'F6')
 
 AddEventHandler('esx:onPlayerDeath', function(data) isDead = true end)
 AddEventHandler('esx:onPlayerSpawn', function(spawn) isDead = false end)
