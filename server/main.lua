@@ -29,13 +29,14 @@ RegisterServerEvent('esx_mechanicjob:startHarvest')
 AddEventHandler('esx_mechanicjob:startHarvest', function()
 	local source = source
 	local xPlayer = ESX.GetPlayerFromId(source)
+	local getIdent = xPlayer.getIdentifier()
 
 	if xPlayer.job.name == 'mechanic' then
 		PlayersHarvesting[source] = true
 		TriggerClientEvent('esx:showNotification', source, TranslateCap('recovery_gas_can'))
 		Harvest(source)
 	else
-		print('[^3WARNING^7] Player ^5' .. xPlayer.getIdentifier() .. '^7 attempted to harvest gas bottles without the Mechanic job!')
+		print(('[^3WARNING^7] Player ^5"%s"^7 attempted to harvest gas bottles without the Mechanic job!'):format(getIdent))
 	end
 end)
 
@@ -67,13 +68,14 @@ RegisterServerEvent('esx_mechanicjob:startHarvest2')
 AddEventHandler('esx_mechanicjob:startHarvest2', function()
 	local source = source
 	local xPlayer = ESX.GetPlayerFromId(source)
+	local getIdent = xPlayer.getIdentifier()
 
 	if xPlayer.job.name == 'mechanic' then
 		PlayersHarvesting2[source] = true
 		TriggerClientEvent('esx:showNotification', source, TranslateCap('recovery_repair_tools'))
 		Harvest2(source)
 	else
-		print('[^3WARNING^7] Player ^5' .. xPlayer.getIdentifier() .. '^7 attempted to harvest repair tools without the Mechanic job!')
+		print(('[^3WARNING^7] Player ^5"%s"^7 attempted to harvest repair tools without the Mechanic job!'):format(getIdent))
 	end
 end)
 
@@ -104,13 +106,14 @@ RegisterServerEvent('esx_mechanicjob:startHarvest3')
 AddEventHandler('esx_mechanicjob:startHarvest3', function()
 	local source = source
 	local xPlayer = ESX.GetPlayerFromId(source)
+	local getIdent = xPlayer.getIdentifier()
 
 	if xPlayer.job.name == 'mechanic' then
 		PlayersHarvesting3[source] = true
 		TriggerClientEvent('esx:showNotification', source, TranslateCap('recovery_body_tools'))
 		Harvest3(source)
 	else
-		print('[^3WARNING^7] Player ^5' .. xPlayer.getIdentifier() .. '^7 attempted to harvest body repair tools without the Mechanic job!')
+		print(('[^3WARNING^7] Player ^5"%s"^7 attempted to harvest body repair tools without the Mechanic job!'):format(getIdent))
 	end
 end)
 
@@ -143,13 +146,14 @@ RegisterServerEvent('esx_mechanicjob:startCraft')
 AddEventHandler('esx_mechanicjob:startCraft', function()
 	local source = source
 	local xPlayer = ESX.GetPlayerFromId(source)
+	local getIdent = xPlayer.getIdentifier()
 
 	if xPlayer.job.name == 'mechanic' then
 		PlayersCrafting[source] = true
 		TriggerClientEvent('esx:showNotification', source, TranslateCap('assembling_blowtorch'))
 		Craft(source)
 	else
-		print('[^3WARNING^7] Player ^5' .. xPlayer.getIdentifier() .. '^7 attempted to craft a blowtorch without the Mechanic job!')
+		print(('[^3WARNING^7] Player ^5"%s"^7 attempted to craft a blowtorch without the Mechanic job!'):format(getIdent))
 	end
 end)
 
@@ -182,13 +186,14 @@ RegisterServerEvent('esx_mechanicjob:startCraft2')
 AddEventHandler('esx_mechanicjob:startCraft2', function()
 	local source = source
 	local xPlayer = ESX.GetPlayerFromId(source)
+	local getIdent = xPlayer.getIdentifier()
 
 	if xPlayer.job.name == 'mechanic' then
 		PlayersCrafting2[source] = true
 		TriggerClientEvent('esx:showNotification', source, TranslateCap('assembling_repair_kit'))
 		Craft2(source)
 	else
-		print('[^3WARNING^7] Player ^5' .. xPlayer.getIdentifier() .. '^7 attempted to craft a repair kit without the Mechanic job!')
+		print(('[^3WARNING^7] Player ^5"%s"^7 attempted to craft a repair kit without the Mechanic job!'):format(getIdent))
 	end
 end)
 
@@ -221,13 +226,14 @@ RegisterServerEvent('esx_mechanicjob:startCraft3')
 AddEventHandler('esx_mechanicjob:startCraft3', function()
 	local source = source
 	local xPlayer = ESX.GetPlayerFromId(source)
+	local getIdent = xPlayer.getIdentifier()
 
 	if xPlayer.job.name == 'mechanic' then
 		PlayersCrafting3[source] = true
 		TriggerClientEvent('esx:showNotification', source, TranslateCap('assembling_body_kit'))
 		Craft3(source)
 	else
-		print('[^3WARNING^7] Player ^5' .. xPlayer.getIdentifier() .. '^7 attempted to craft a body repair kit without the Mechanic job!')
+		print(('[^3WARNING^7] Player ^5"%s"^7 attempted to craft a body repair kit without the Mechanic job!'):format(getIdent))
 	end
 end)
 
@@ -241,6 +247,7 @@ RegisterServerEvent('esx_mechanicjob:onNPCJobMissionCompleted')
 AddEventHandler('esx_mechanicjob:onNPCJobMissionCompleted', function()
 	local source = source
 	local xPlayer = ESX.GetPlayerFromId(source)
+	local getIdent = xPlayer.getIdentifier()
 	local total   = math.random(Config.NPCJobEarnings.min, Config.NPCJobEarnings.max);
 
 	if xPlayer.job.name == 'mechanic' then
@@ -254,7 +261,7 @@ AddEventHandler('esx_mechanicjob:onNPCJobMissionCompleted', function()
 
 		TriggerClientEvent("esx:showNotification", source, TranslateCap('your_comp_earned').. total)
 	else
-		print('[^3WARNING^7] Player ^5' .. xPlayer.getIdentifier() .. '^7 attempted to withdraw from the Mechanic Job society account!')
+		print(('[^3WARNING^7] Player ^5"%s"^7 attempted to withdraw from the Mechanic Job society account!'):format(getIdent))
 	end
 end)
 
@@ -291,6 +298,7 @@ end)
 RegisterServerEvent('esx_mechanicjob:getStockItem')
 AddEventHandler('esx_mechanicjob:getStockItem', function(itemName, count)
 	local xPlayer = ESX.GetPlayerFromId(source)
+	local getIdent = xPlayer.getIdentifier()
 
 	if xPlayer.job.name == 'mechanic' then
 		TriggerEvent('esx_addoninventory:getSharedInventory', 'society_mechanic', function(inventory)
@@ -312,7 +320,7 @@ AddEventHandler('esx_mechanicjob:getStockItem', function(itemName, count)
 			end
 		end)
 	else
-		print('[^3WARNING^7] Player ^5' .. xPlayer.getIdentifier() .. '^7 attempted to take ' .. count .. ' x ' .. itemName .. ' from the Mechanic Job society inventory without the right job!')
+		print(('[^3WARNING^7] Player ^5"%s"^7 attempted to take %s x %s from the Mechanic Job society inventory without the right job!'):format(getIdent, count, itemName))
 	end
 end)
 
