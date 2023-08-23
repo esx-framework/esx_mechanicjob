@@ -1,13 +1,14 @@
 local HasAlreadyEnteredMarker, LastZone = false, nil
 local CurrentAction, CurrentActionMsg, CurrentActionData = nil, '', {}
 local CurrentlyTowedVehicle, Blips, NPCOnJob, NPCTargetTowable, NPCTargetTowableZone = nil, {}, false, nil, nil
-local NPCHasSpawnedTowable, NPCLastCancel, NPCHasBeenNextToTowable, NPCTargetDeleterZone = false, GetGameTimer() - 5 * 60000, false, false
+local NPCHasSpawnedTowable, NPCLastCancel, NPCHasBeenNextToTowable, NPCTargetDeleterZone = false,
+	GetGameTimer() - 5 * 60000, false, false
 local isDead, isBusy = false, false
 
 function SelectRandomTowable()
-	local index = GetRandomIntInRange(1,  #Config.Towables)
+	local index = GetRandomIntInRange(1, #Config.Towables)
 
-	for k,v in pairs(Config.Zones) do
+	for k, v in pairs(Config.Zones) do
 		if v.Pos.x == Config.Towables[index].x and v.Pos.y == Config.Towables[index].y and v.Pos.z == Config.Towables[index].z then
 			return k
 		end
@@ -20,7 +21,7 @@ function StartNPCJob()
 	NPCTargetTowableZone = SelectRandomTowable()
 	local zone = Config.Zones[NPCTargetTowableZone]
 
-	Blips['NPCTargetTowableZone'] = AddBlipForCoord(zone.Pos.x,  zone.Pos.y,  zone.Pos.z)
+	Blips['NPCTargetTowableZone'] = AddBlipForCoord(zone.Pos.x, zone.Pos.y, zone.Pos.z)
 	SetBlipRoute(Blips['NPCTargetTowableZone'], true)
 
 	ESX.ShowNotification(TranslateCap('drive_to_indicated'))
@@ -39,11 +40,11 @@ function StopNPCJob(cancel)
 
 	Config.Zones.VehicleDelivery.Type = -1
 
-	NPCOnJob = false
-	NPCTargetTowable  = nil
-	NPCTargetTowableZone = nil
-	NPCHasSpawnedTowable = false
-	NPCHasBeenNextToTowable = false
+	NPCOnJob                          = false
+	NPCTargetTowable                  = nil
+	NPCTargetTowableZone              = nil
+	NPCHasSpawnedTowable              = false
+	NPCHasBeenNextToTowable           = false
 
 	if cancel then
 		ESX.ShowNotification(TranslateCap('mission_canceled'), "error")
@@ -54,67 +55,68 @@ end
 
 function OpenMechanicActionsMenu()
 	local elements = {
-		{unselectable = true, icon = "fas fa-gear", title = TranslateCap('mechanic')},
-		{icon = "fas fa-car",   title = TranslateCap('vehicle_list'),   value = 'vehicle_list'},
-		{icon = "fas fa-shirt", title = TranslateCap('work_wear'),      value = 'cloakroom'},
-		{icon = "fas fa-shirt", title = TranslateCap('civ_wear'),       value = 'cloakroom2'},
-		{icon = "fas fa-box",   title = TranslateCap('deposit_stock'),  value = 'put_stock'},
-		{icon = "fas fa-box",   title = TranslateCap('withdraw_stock'), value = 'get_stock'}
+		{ unselectable = true,   icon = "fas fa-gear",                   title = TranslateCap('mechanic') },
+		{ icon = "fas fa-car",   title = TranslateCap('vehicle_list'),   value = 'vehicle_list' },
+		{ icon = "fas fa-shirt", title = TranslateCap('work_wear'),      value = 'cloakroom' },
+		{ icon = "fas fa-shirt", title = TranslateCap('civ_wear'),       value = 'cloakroom2' },
+		{ icon = "fas fa-box",   title = TranslateCap('deposit_stock'),  value = 'put_stock' },
+		{ icon = "fas fa-box",   title = TranslateCap('withdraw_stock'), value = 'get_stock' }
 	}
 
 	if Config.EnablePlayerManagement and ESX.PlayerData.job and ESX.PlayerData.job.grade_name == 'boss' then
-		elements[#elements+1] = {
+		elements[#elements + 1] = {
 			icon = 'fas fa-boss',
-			title = TranslateCap('boss_actions'), 
+			title = TranslateCap('boss_actions'),
 			value = 'boss_actions'
 		}
 	end
 
-	ESX.OpenContext("right", elements, function(menu,element)
+	ESX.OpenContext("right", elements, function(menu, element)
 		if element.value == 'vehicle_list' then
 			if Config.EnableSocietyOwnedVehicles then
 				local elements2 = {
-					{unselectable = true, icon = "fas fa-car", title = TranslateCap('service_vehicle')}
+					{ unselectable = true, icon = "fas fa-car", title = TranslateCap('service_vehicle') }
 				}
 
 				ESX.TriggerServerCallback('esx_society:getVehiclesInGarage', function(vehicles)
-					for i=1, #vehicles, 1 do
-						elements2[#elements2+1] = {
+					for i = 1, #vehicles, 1 do
+						elements2[#elements2 + 1] = {
 							icon = 'fas fa-car',
 							title = GetDisplayNameFromVehicleModel(vehicles[i].model) .. ' [' .. vehicles[i].plate .. ']',
 							value = vehicles[i]
 						}
 					end
 
-					ESX.OpenContext("right", elements2, function(menu2,element2)
+					ESX.OpenContext("right", elements2, function(menu2, element2)
 						ESX.CloseContext()
 						local vehicleProps = element2.value
 
-						ESX.Game.SpawnVehicle(vehicleProps.model, Config.Zones.VehicleSpawnPoint.Pos, 270.0, function(vehicle)
-							ESX.Game.SetVehicleProperties(vehicle, vehicleProps)
-							local playerPed = PlayerPedId()
-							TaskWarpPedIntoVehicle(playerPed,  vehicle,  -1)
-						end)
+						ESX.Game.SpawnVehicle(vehicleProps.model, Config.Zones.VehicleSpawnPoint.Pos, 270.0,
+							function(vehicle)
+								ESX.Game.SetVehicleProperties(vehicle, vehicleProps)
+								local playerPed = PlayerPedId()
+								TaskWarpPedIntoVehicle(playerPed, vehicle, -1)
+							end)
 
 						TriggerServerEvent('esx_society:removeVehicleFromGarage', 'mechanic', vehicleProps)
 					end)
 				end, 'mechanic')
 			else
 				local elements2 = {
-					{unselectable = true, icon = "fas fa-car", title = TranslateCap('service_vehicle')},
-					{icon = "fas fa-truck", title = TranslateCap('flat_bed'),  value = 'flatbed'},
-					{icon = "fas fa-truck", title = TranslateCap('tow_truck'), value = 'towtruck2'}
+					{ unselectable = true,   icon = "fas fa-car",               title = TranslateCap('service_vehicle') },
+					{ icon = "fas fa-truck", title = TranslateCap('flat_bed'),  value = 'flatbed' },
+					{ icon = "fas fa-truck", title = TranslateCap('tow_truck'), value = 'towtruck2' }
 				}
 
 				if Config.EnablePlayerManagement and ESX.PlayerData.job and (ESX.PlayerData.job.grade_name == 'boss' or ESX.PlayerData.job.grade_name == 'chief' or ESX.PlayerData.job.grade_name == 'experimente') then
-					elements2[#elements2+1] = {
+					elements2[#elements2 + 1] = {
 						icon = 'fas fa-truck',
-						title = 'Slamvan', 
+						title = 'Slamvan',
 						value = 'slamvan3'
 					}
 				end
 
-				ESX.OpenContext("right", elements2, function(menu2,element2)
+				ESX.OpenContext("right", elements2, function(menu2, element2)
 					if Config.MaxInService == -1 then
 						ESX.CloseContext()
 						ESX.Game.SpawnVehicle(element2.value, Config.Zones.VehicleSpawnPoint.Pos, 90.0, function(vehicle)
@@ -122,17 +124,20 @@ function OpenMechanicActionsMenu()
 							TaskWarpPedIntoVehicle(playerPed, vehicle, -1)
 						end)
 					else
-						ESX.TriggerServerCallback('esx_service:enableService', function(canTakeService, maxInService, inServiceCount)
-							if canTakeService then
-								ESX.CloseContext()
-								ESX.Game.SpawnVehicle(element2.value, Config.Zones.VehicleSpawnPoint.Pos, 90.0, function(vehicle)
-									local playerPed = PlayerPedId()
-									TaskWarpPedIntoVehicle(playerPed,  vehicle, -1)
-								end)
-							else
-								ESX.ShowNotification(TranslateCap('service_full') .. inServiceCount .. '/' .. maxInService)
-							end
-						end, 'mechanic')
+						ESX.TriggerServerCallback('esx_service:enableService',
+							function(canTakeService, maxInService, inServiceCount)
+								if canTakeService then
+									ESX.CloseContext()
+									ESX.Game.SpawnVehicle(element2.value, Config.Zones.VehicleSpawnPoint.Pos, 90.0,
+										function(vehicle)
+											local playerPed = PlayerPedId()
+											TaskWarpPedIntoVehicle(playerPed, vehicle, -1)
+										end)
+								else
+									ESX.ShowNotification(TranslateCap('service_full') ..
+									inServiceCount .. '/' .. maxInService)
+								end
+							end, 'mechanic')
 					end
 				end)
 			end
@@ -159,7 +164,7 @@ function OpenMechanicActionsMenu()
 			OpenGetStocksMenu()
 		elseif element.value == 'boss_actions' then
 			TriggerEvent('esx_society:openBossMenu', 'mechanic', function(data, menu)
-			      ESX.CloseContext()
+				ESX.CloseContext()
 			end)
 		end
 	end, function(menu)
@@ -172,13 +177,13 @@ end
 function OpenMechanicHarvestMenu()
 	if Config.EnablePlayerManagement and ESX.PlayerData.job and ESX.PlayerData.job.grade_name ~= 'recrue' then
 		local elements = {
-			{unselectable = true, icon = "fas fa-gear", title = "Mechanic Harvest Menu"},
-			{icon = "fas fa-gear", title = TranslateCap('gas_can'), value = 'gaz_bottle'},
-			{icon = "fas fa-gear", title = TranslateCap('repair_tools'), value = 'fix_tool'},
-			{icon = "fas fa-gear", title = TranslateCap('body_work_tools'), value = 'caro_tool'}
+			{ unselectable = true,  icon = "fas fa-gear",                    title = "Mechanic Harvest Menu" },
+			{ icon = "fas fa-gear", title = TranslateCap('gas_can'),         value = 'gaz_bottle' },
+			{ icon = "fas fa-gear", title = TranslateCap('repair_tools'),    value = 'fix_tool' },
+			{ icon = "fas fa-gear", title = TranslateCap('body_work_tools'), value = 'caro_tool' }
 		}
 
-		ESX.OpenContext("right", elements, function(menu,element)
+		ESX.OpenContext("right", elements, function(menu, element)
 			if element.value == 'gaz_bottle' then
 				TriggerServerEvent('esx_mechanicjob:startHarvest')
 			elseif element.value == 'fix_tool' then
@@ -199,13 +204,13 @@ end
 function OpenMechanicCraftMenu()
 	if Config.EnablePlayerManagement and ESX.PlayerData.job and ESX.PlayerData.job.grade_name ~= 'recrue' then
 		local elements = {
-			{unselectable = true, icon = "fas fa-gear", title = "Mechanic Craft Menu"},
-			{icon = "fas fa-gear", title = TranslateCap('blowtorch'),  value = 'blow_pipe'},
-			{icon = "fas fa-gear", title = TranslateCap('repair_kit'), value = 'fix_kit'},
-			{icon = "fas fa-gear", title = TranslateCap('body_kit'),   value = 'caro_kit'}
+			{ unselectable = true,  icon = "fas fa-gear",               title = "Mechanic Craft Menu" },
+			{ icon = "fas fa-gear", title = TranslateCap('blowtorch'),  value = 'blow_pipe' },
+			{ icon = "fas fa-gear", title = TranslateCap('repair_kit'), value = 'fix_kit' },
+			{ icon = "fas fa-gear", title = TranslateCap('body_kit'),   value = 'caro_kit' }
 		}
 
-		ESX.OpenContext("right", elements, function(menu,element)
+		ESX.OpenContext("right", elements, function(menu, element)
 			if element.value == 'blow_pipe' then
 				TriggerServerEvent('esx_mechanicjob:startCraft')
 			elseif element.value == 'fix_kit' then
@@ -225,27 +230,31 @@ end
 
 function OpenMobileMechanicActionsMenu()
 	local elements = {
-		{unselectable = true, icon = "fas fa-gear", title = TranslateCap('mechanic')},
-		{icon = "fas fa-gear", title = TranslateCap('billing'),       value = 'billing'},
-		{icon = "fas fa-gear", title = TranslateCap('hijack'),        value = 'hijack_vehicle'},
-		{icon = "fas fa-gear", title = TranslateCap('repair'),        value = 'fix_vehicle'},
-		{icon = "fas fa-gear", title = TranslateCap('clean'),         value = 'clean_vehicle'},
-		{icon = "fas fa-gear", title = TranslateCap('imp_veh'),       value = 'del_vehicle'},
-		{icon = "fas fa-gear", title = TranslateCap('flat_bed'),      value = 'dep_vehicle'},
-		{icon = "fas fa-gear", title = TranslateCap('place_objects'), value = 'object_spawner'}
+		{ unselectable = true,  icon = "fas fa-gear",                  title = TranslateCap('mechanic') },
+		{ icon = "fas fa-gear", title = TranslateCap('billing'),       value = 'billing' },
+		{ icon = "fas fa-gear", title = TranslateCap('hijack'),        value = 'hijack_vehicle' },
+		{ icon = "fas fa-gear", title = TranslateCap('flipvehicle'),   value = 'vehicle_flip' },
+		{ icon = "fas fa-gear", title = TranslateCap('repair'),        value = 'fix_vehicle' },
+		{ icon = "fas fa-gear", title = TranslateCap('clean'),         value = 'clean_vehicle' },
+		{ icon = "fas fa-gear", title = TranslateCap('imp_veh'),       value = 'del_vehicle' },
+		{ icon = "fas fa-gear", title = TranslateCap('flat_bed'),      value = 'dep_vehicle' },
+		{ icon = "fas fa-gear", title = TranslateCap('place_objects'), value = 'object_spawner' }
 	}
 
-	ESX.OpenContext("right", elements, function(menu,element)
+	ESX.OpenContext("right", elements, function(menu, element)
 		if isBusy then return end
 
 		if element.value == "billing" then
 			local elements2 = {
-				{unselectable = true, icon = "fas fa-scroll", title = element.title},
-				{title = "Amount", input = true, inputType = "number", inputMin = 1, inputMax = 250000, inputPlaceholder = "Amount to bill.."},
-				{icon = "fas fa-check-double", title = "Confirm", value = "confirm"}
+				{ unselectable = true,          icon = "fas fa-scroll", title = element.title },
+				{ title = "Amount",             input = true,           inputType = "number", inputMin = 1,
+					                                                                                            inputMax = 250000,
+					                                                                                                               inputPlaceholder =
+					"Amount to bill.." },
+				{ icon = "fas fa-check-double", title = "Confirm",      value = "confirm" }
 			}
 
-			ESX.OpenContext("right", elements2, function(menu2,element2)
+			ESX.OpenContext("right", elements2, function(menu2, element2)
 				local amount = tonumber(menu2.eles[2].inputValue)
 
 				if amount == nil or amount < 0 then
@@ -256,7 +265,8 @@ function OpenMobileMechanicActionsMenu()
 						ESX.ShowNotification(TranslateCap('no_players_nearby'), "error")
 					else
 						ESX.CloseContext()
-						TriggerServerEvent('esx_billing:sendBill', GetPlayerServerId(closestPlayer), 'society_mechanic', TranslateCap('mechanic'), amount)
+						TriggerServerEvent('esx_billing:sendBill', GetPlayerServerId(closestPlayer), 'society_mechanic',
+							TranslateCap('mechanic'), amount)
 					end
 				end
 			end)
@@ -285,6 +295,14 @@ function OpenMobileMechanicActionsMenu()
 				end)
 			else
 				ESX.ShowNotification(TranslateCap('no_vehicle_nearby'))
+			end
+		elseif element.value == "vehicle_flip" then
+			local playerPed = PlayerPedId()
+			if IsPedSittingInAnyVehicle(playerPed) then
+				ESX.ShowNotification(TranslateCap('inside_vehicle'))
+				return
+			else
+				FlipCarOver()
 			end
 		elseif element.value == "fix_vehicle" then
 			local playerPed = PlayerPedId()
@@ -375,7 +393,8 @@ function OpenMobileMechanicActionsMenu()
 					if targetVehicle ~= 0 then
 						if not IsPedInAnyVehicle(playerPed, true) then
 							if vehicle ~= targetVehicle then
-								AttachEntityToEntity(targetVehicle, vehicle, 20, -0.5, -5.0, 1.0, 0.0, 0.0, 0.0, false, false, false, false, 20, true)
+								AttachEntityToEntity(targetVehicle, vehicle, 20, -0.5, -5.0, 1.0, 0.0, 0.0, 0.0, false,
+									false, false, false, 20, true)
 								CurrentlyTowedVehicle = targetVehicle
 								ESX.ShowNotification(TranslateCap('vehicle_success_attached'))
 
@@ -389,7 +408,8 @@ function OpenMobileMechanicActionsMenu()
 											Blips['NPCTargetTowableZone'] = nil
 										end
 
-										Blips['NPCDelivery'] = AddBlipForCoord(Config.Zones.VehicleDelivery.Pos.x, Config.Zones.VehicleDelivery.Pos.y, Config.Zones.VehicleDelivery.Pos.z)
+										Blips['NPCDelivery'] = AddBlipForCoord(Config.Zones.VehicleDelivery.Pos.x,
+											Config.Zones.VehicleDelivery.Pos.y, Config.Zones.VehicleDelivery.Pos.z)
 										SetBlipRoute(Blips['NPCDelivery'], true)
 									end
 								end
@@ -401,12 +421,12 @@ function OpenMobileMechanicActionsMenu()
 						ESX.ShowNotification(TranslateCap('no_veh_att'))
 					end
 				else
-					AttachEntityToEntity(CurrentlyTowedVehicle, vehicle, 20, -0.5, -12.0, 1.0, 0.0, 0.0, 0.0, false, false, false, false, 20, true)
+					AttachEntityToEntity(CurrentlyTowedVehicle, vehicle, 20, -0.5, -12.0, 1.0, 0.0, 0.0, 0.0, false,
+						false, false, false, 20, true)
 					DetachEntity(CurrentlyTowedVehicle, true, true)
 
 					if NPCOnJob then
 						if NPCTargetDeleterZone then
-
 							if CurrentlyTowedVehicle == NPCTargetTowable then
 								ESX.Game.DeleteVehicle(NPCTargetTowable)
 								TriggerServerEvent('esx_mechanicjob:onNPCJobMissionCompleted')
@@ -415,7 +435,6 @@ function OpenMobileMechanicActionsMenu()
 							else
 								ESX.ShowNotification(TranslateCap('not_right_veh'))
 							end
-
 						else
 							ESX.ShowNotification(TranslateCap('not_right_place'))
 						end
@@ -436,12 +455,12 @@ function OpenMobileMechanicActionsMenu()
 			end
 
 			local elements2 = {
-				{unselectable= true, icon = "fas fa-object", title = TranslateCap('objects')},
-				{icon = "fas fa-object", title = TranslateCap('roadcone'), value = 'prop_roadcone02a'},
-				{icon = "fas fa-object", title = TranslateCap('toolbox'),  value = 'prop_toolchest_01'}
+				{ unselectable = true,    icon = "fas fa-object",           title = TranslateCap('objects') },
+				{ icon = "fas fa-object", title = TranslateCap('roadcone'), value = 'prop_roadcone02a' },
+				{ icon = "fas fa-object", title = TranslateCap('toolbox'),  value = 'prop_toolchest_01' }
 			}
 
-			ESX.OpenContext("right", elements2, function(menuObj,elementObj)
+			ESX.OpenContext("right", elements2, function(menuObj, elementObj)
 				local model   = elementObj.value
 				local coords  = GetEntityCoords(playerPed)
 				local forward = GetEntityForwardVector(playerPed)
@@ -453,7 +472,7 @@ function OpenMobileMechanicActionsMenu()
 					z = z - 2.0
 				end
 
-				ESX.Game.SpawnObject(model, {x = x, y = y, z = z}, function(obj)
+				ESX.Game.SpawnObject(model, { x = x, y = y, z = z }, function(obj)
 					SetEntityHeading(obj, GetEntityHeading(playerPed))
 					PlaceObjectOnGroundProperly(obj)
 				end)
@@ -465,27 +484,29 @@ end
 function OpenGetStocksMenu()
 	ESX.TriggerServerCallback('esx_mechanicjob:getStockItems', function(items)
 		local elements = {
-			{unselectable = true, icon = "fas fa-box", title = TranslateCap('mechanic_stock')}
+			{ unselectable = true, icon = "fas fa-box", title = TranslateCap('mechanic_stock') }
 		}
 
-		for i=1, #items, 1 do
-			elements[#elements+1] = {
+		for i = 1, #items, 1 do
+			elements[#elements + 1] = {
 				icon = 'fas fa-box',
 				title = 'x' .. items[i].count .. ' ' .. items[i].label,
 				value = items[i].name
 			}
 		end
 
-		ESX.OpenContext("right", elements, function(menu,element)
+		ESX.OpenContext("right", elements, function(menu, element)
 			local itemName = element.value
 
 			local elements2 = {
-				{unselectable = true, icon = "fas fa-box", title = element.title},
-				{title = "Amount", input = true, inputType = "number", inputMin = 1, inputMax = 100, inputPlaceholder = "Amount to withdraw.."},
-				{icon = "fas fa-check-double", title = "Confirm", value = "confirm"}
+				{ unselectable = true,          icon = "fas fa-box", title = element.title },
+				{ title = "Amount",             input = true,        inputType = "number", inputMin = 1, inputMax = 100,
+					                                                                                                         inputPlaceholder =
+					"Amount to withdraw.." },
+				{ icon = "fas fa-check-double", title = "Confirm",   value = "confirm" }
 			}
 
-			ESX.OpenContext("right", elements2, function(menu2,element2)
+			ESX.OpenContext("right", elements2, function(menu2, element2)
 				local count = tonumber(menu2.eles[2].inputValue)
 
 				if count == nil then
@@ -505,15 +526,15 @@ end
 function OpenPutStocksMenu()
 	ESX.TriggerServerCallback('esx_mechanicjob:getPlayerInventory', function(inventory)
 		local elements = {
-			{unselectable = true, icon = "fas fa-box", title = TranslateCap('inventory')}
+			{ unselectable = true, icon = "fas fa-box", title = TranslateCap('inventory') }
 		}
 
-		for i=1, #inventory.items, 1 do
+		for i = 1, #inventory.items, 1 do
 			local item = inventory.items[i]
 
 			if item.count > 0 then
-				elements[#elements+1] = {
-					icon = 'fas fa-box',
+				elements[#elements + 1] = {
+					icon  = 'fas fa-box',
 					title = item.label .. ' x' .. item.count,
 					type  = 'item_standard',
 					value = item.name
@@ -521,16 +542,18 @@ function OpenPutStocksMenu()
 			end
 		end
 
-		ESX.OpenContext("right", elements, function(menu,element)
+		ESX.OpenContext("right", elements, function(menu, element)
 			local itemName = element.value
 
 			local elements2 = {
-				{unselectable = true, icon = "fas fa-box", title = element.title},
-				{title = "Amount", input = true, inputType = "number", inputMin = 1, inputMax = 100, inputPlaceholder = "Amount to deposit.."},
-				{icon = "fas fa-check-double", title = "Confirm", value = "confirm"}
+				{ unselectable = true,          icon = "fas fa-box", title = element.title },
+				{ title = "Amount",             input = true,        inputType = "number", inputMin = 1, inputMax = 100,
+					                                                                                                         inputPlaceholder =
+					"Amount to deposit.." },
+				{ icon = "fas fa-check-double", title = "Confirm",   value = "confirm" }
 			}
 
-			ESX.OpenContext("right", elements2, function(menu2,element2)
+			ESX.OpenContext("right", elements2, function(menu2, element2)
 				local count = tonumber(menu2.eles[2].inputValue)
 
 				if count == nil then
@@ -545,6 +568,28 @@ function OpenPutStocksMenu()
 			end)
 		end)
 	end)
+end
+
+function FlipCarOver()
+    local ped = PlayerPedId()
+    local pedcoords = GetEntityCoords(ped)
+        VehicleData = ESX.Game.GetClosestVehicle()
+    local dist = #(pedcoords - GetEntityCoords(VehicleData))
+    if dist <= 3 then
+        RequestAnimDict('missfinale_c2ig_11')
+        while not HasAnimDictLoaded("missfinale_c2ig_11") do
+            Wait(10)
+        end
+        TaskPlayAnim(ped, 'missfinale_c2ig_11', 'pushcar_offcliff_m', 2.0, -8.0, -1, 35, 0, 0, 0, 0)
+        Wait(4000)
+        local carCoords = GetEntityRotation(VehicleData, 2)
+        SetEntityRotation(VehicleData, carCoords[1], 0, carCoords[3], 2, true)
+        SetVehicleOnGroundProperly(VehicleData)
+        ESX.ShowNotification(TranslateCap('vehicle_flipped'))
+        ClearPedTasks(ped)
+    else
+        ESX.ShowNotification(TranslateCap('no_vehicle_nearby'))
+    end
 end
 
 RegisterNetEvent('esx_mechanicjob:onHijack')
@@ -657,7 +702,7 @@ end)
 AddEventHandler('esx_mechanicjob:hasEnteredMarker', function(zone)
 	if zone == 'NPCJobTargetTowable' then
 
-	elseif zone =='VehicleDelivery' then
+	elseif zone == 'VehicleDelivery' then
 		NPCTargetDeleterZone = true
 	elseif zone == 'MechanicActions' then
 		CurrentAction     = 'mechanic_actions_menu'
@@ -675,18 +720,18 @@ AddEventHandler('esx_mechanicjob:hasEnteredMarker', function(zone)
 		local playerPed = PlayerPedId()
 
 		if IsPedInAnyVehicle(playerPed, false) then
-			local vehicle = GetVehiclePedIsIn(playerPed,  false)
+			local vehicle     = GetVehiclePedIsIn(playerPed, false)
 
 			CurrentAction     = 'delete_vehicle'
 			CurrentActionMsg  = TranslateCap('veh_stored')
-			CurrentActionData = {vehicle = vehicle}
+			CurrentActionData = { vehicle = vehicle }
 		end
 	end
 	ESX.TextUI(CurrentActionMsg)
 end)
 
 AddEventHandler('esx_mechanicjob:hasExitedMarker', function(zone)
-	if zone =='VehicleDelivery' then
+	if zone == 'VehicleDelivery' then
 		NPCTargetDeleterZone = false
 	elseif zone == 'Craft' then
 		TriggerServerEvent('esx_mechanicjob:stopCraft')
@@ -709,7 +754,7 @@ AddEventHandler('esx_mechanicjob:hasEnteredEntityZone', function(entity)
 	if ESX.PlayerData.job and ESX.PlayerData.job.name == 'mechanic' and not IsPedInAnyVehicle(playerPed, false) then
 		CurrentAction     = 'remove_entity'
 		CurrentActionMsg  = TranslateCap('press_remove_obj')
-		CurrentActionData = {entity = entity}
+		CurrentActionData = { entity = entity }
 		ESX.TextUI(CurrentActionMsg)
 	end
 end)
@@ -726,7 +771,8 @@ AddEventHandler('esx_phone:loaded', function(phoneNumber, contacts)
 	local specialContact = {
 		name       = TranslateCap('mechanic'),
 		number     = 'mechanic',
-		base64Icon = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAALEwAACxMBAJqcGAAAA4BJREFUWIXtll9oU3cUx7/nJA02aSSlFouWMnXVB0ejU3wcRteHjv1puoc9rA978cUi2IqgRYWIZkMwrahUGfgkFMEZUdg6C+u21z1o3fbgqigVi7NzUtNcmsac40Npltz7S3rvUHzxQODec87vfD+/e0/O/QFv7Q0beV3QeXqmgV74/7H7fZJvuLwv8q/Xeux1gUrNBpN/nmtavdaqDqBK8VT2RDyV2VHmF1lvLERSBtCVynzYmcp+A9WqT9kcVKX4gHUehF0CEVY+1jYTTIwvt7YSIQnCTvsSUYz6gX5uDt7MP7KOKuQAgxmqQ+neUA+I1B1AiXi5X6ZAvKrabirmVYFwAMRT2RMg7F9SyKspvk73hfrtbkMPyIhA5FVqi0iBiEZMMQdAui/8E4GPv0oAJkpc6Q3+6goAAGpWBxNQmTLFmgL3jSJNgQdGv4pMts2EKm7ICJB/aG0xNdz74VEk13UYCx1/twPR8JjDT8wttyLZtkoAxSb8ZDCz0gdfKxWkFURf2v9qTYH7SK7rQIDn0P3nA0ehixvfwZwE0X9vBE/mW8piohhl1WH18UQBhYnre8N/L8b8xQvlx4ACbB4NnzaeRYDnKm0EALCMLXy84hwuTCXL/ExoB1E7qcK/8NCLIq5HcTT0i6u8TYbXUM1cAyyveVq8Xls7XhYrvY/4n3gC8C+dsmAzL1YUiyfWxvHzsy/w/dNd+KjhW2yvv/RfXr7x9QDcmo1he2RBiCCI1Q8jVj9szPNixVfgz+UiIGyDSrcoRu2J16d3I6e1VYvNSQjXpnucAcEPUOkGYZs/l4uUhowt/3kqu1UIv9n90fAY9jT3YBlbRvFTD4fw++wHjhiTRL/bG75t0jI2ITcHb5om4Xgmhv57xpGOg3d/NIqryOR7z+r+MC6qBJB/ZB2t9Om1D5lFm843G/3E3HI7Yh1xDRAfzLQr5EClBf/HBHK462TG2J0OABXeyWDPZ8VqxmBWYscpyghwtTd4EKpDTjCZdCNmzFM9k+4LHXIFACJN94Z6FiFEpKDQw9HndWsEuhnADVMhAUaYJBp9XrcGQKJ4qFE9k+6r2+MG3k5N8VQ22TVglbX2ZwOzX2VvNKr91zmY6S7N6zqZicVT2WNLyVSehESaBhxnOALfMeYX+K/S2yv7wmMAlvwyuR7FxQUyf0fgc/jztfkJr7XeGgC8BJJgWNV8ImT+AAAAAElFTkSuQmCC'
+		base64Icon =
+		'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAALEwAACxMBAJqcGAAAA4BJREFUWIXtll9oU3cUx7/nJA02aSSlFouWMnXVB0ejU3wcRteHjv1puoc9rA978cUi2IqgRYWIZkMwrahUGfgkFMEZUdg6C+u21z1o3fbgqigVi7NzUtNcmsac40Npltz7S3rvUHzxQODec87vfD+/e0/O/QFv7Q0beV3QeXqmgV74/7H7fZJvuLwv8q/Xeux1gUrNBpN/nmtavdaqDqBK8VT2RDyV2VHmF1lvLERSBtCVynzYmcp+A9WqT9kcVKX4gHUehF0CEVY+1jYTTIwvt7YSIQnCTvsSUYz6gX5uDt7MP7KOKuQAgxmqQ+neUA+I1B1AiXi5X6ZAvKrabirmVYFwAMRT2RMg7F9SyKspvk73hfrtbkMPyIhA5FVqi0iBiEZMMQdAui/8E4GPv0oAJkpc6Q3+6goAAGpWBxNQmTLFmgL3jSJNgQdGv4pMts2EKm7ICJB/aG0xNdz74VEk13UYCx1/twPR8JjDT8wttyLZtkoAxSb8ZDCz0gdfKxWkFURf2v9qTYH7SK7rQIDn0P3nA0ehixvfwZwE0X9vBE/mW8piohhl1WH18UQBhYnre8N/L8b8xQvlx4ACbB4NnzaeRYDnKm0EALCMLXy84hwuTCXL/ExoB1E7qcK/8NCLIq5HcTT0i6u8TYbXUM1cAyyveVq8Xls7XhYrvY/4n3gC8C+dsmAzL1YUiyfWxvHzsy/w/dNd+KjhW2yvv/RfXr7x9QDcmo1he2RBiCCI1Q8jVj9szPNixVfgz+UiIGyDSrcoRu2J16d3I6e1VYvNSQjXpnucAcEPUOkGYZs/l4uUhowt/3kqu1UIv9n90fAY9jT3YBlbRvFTD4fw++wHjhiTRL/bG75t0jI2ITcHb5om4Xgmhv57xpGOg3d/NIqryOR7z+r+MC6qBJB/ZB2t9Om1D5lFm843G/3E3HI7Yh1xDRAfzLQr5EClBf/HBHK462TG2J0OABXeyWDPZ8VqxmBWYscpyghwtTd4EKpDTjCZdCNmzFM9k+4LHXIFACJN94Z6FiFEpKDQw9HndWsEuhnADVMhAUaYJBp9XrcGQKJ4qFE9k+6r2+MG3k5N8VQ22TVglbX2ZwOzX2VvNKr91zmY6S7N6zqZicVT2WNLyVSehESaBhxnOALfMeYX+K/S2yv7wmMAlvwyuR7FxQUyf0fgc/jztfkJr7XeGgC8BJJgWNV8ImT+AAAAAElFTkSuQmCC'
 	}
 
 	TriggerEvent('esx_phone:addSpecialContact', specialContact.name, specialContact.number, specialContact.base64Icon)
@@ -738,12 +784,12 @@ CreateThread(function()
 		local Sleep = 1500
 
 		if NPCTargetTowableZone and not NPCHasSpawnedTowable then
-			Sleep = 0
+			Sleep        = 0
 			local coords = GetEntityCoords(PlayerPedId())
 			local zone   = Config.Zones[NPCTargetTowableZone]
 
 			if #(coords - zone.Pos) < Config.NPCSpawnDistance then
-				local model = Config.Vehicles[GetRandomIntInRange(1,  #Config.Vehicles)]
+				local model = Config.Vehicles[GetRandomIntInRange(1, #Config.Vehicles)]
 
 				ESX.Game.SpawnVehicle(model, zone.Pos, 0, function(vehicle)
 					NPCTargetTowable = vehicle
@@ -754,7 +800,7 @@ CreateThread(function()
 		end
 
 		if NPCTargetTowableZone and NPCHasSpawnedTowable and not NPCHasBeenNextToTowable then
-			Sleep = 500
+			Sleep        = 500
 			local coords = GetEntityCoords(PlayerPedId())
 			local zone   = Config.Zones[NPCTargetTowableZone]
 
@@ -764,18 +810,19 @@ CreateThread(function()
 				NPCHasBeenNextToTowable = true
 			end
 		end
-	Wait(Sleep)
+		Wait(Sleep)
 	end
 end)
 
 -- Create Blips
 CreateThread(function()
-	local blip = AddBlipForCoord(Config.Zones.MechanicActions.Pos.x, Config.Zones.MechanicActions.Pos.y, Config.Zones.MechanicActions.Pos.z)
+	local blip = AddBlipForCoord(Config.Zones.MechanicActions.Pos.x, Config.Zones.MechanicActions.Pos.y,
+		Config.Zones.MechanicActions.Pos.z)
 
-	SetBlipSprite (blip, 446)
+	SetBlipSprite(blip, 446)
 	SetBlipDisplay(blip, 4)
-	SetBlipScale  (blip, 1.0)
-	SetBlipColour (blip, 5)
+	SetBlipScale(blip, 1.0)
+	SetBlipColour(blip, 5)
 	SetBlipAsShortRange(blip, true)
 
 	BeginTextCommandSetBlipName('STRING')
@@ -792,15 +839,16 @@ CreateThread(function()
 			Sleep = 500
 			local coords, letSleep = GetEntityCoords(PlayerPedId()), true
 
-			for k,v in pairs(Config.Zones) do
+			for k, v in pairs(Config.Zones) do
 				if v.Type ~= -1 and #(coords - v.Pos) < Config.DrawDistance then
 					Sleep = 0
-					DrawMarker(v.Type, v.Pos.x, v.Pos.y, v.Pos.z, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, v.Size.x, v.Size.y, v.Size.z, v.Color.r, v.Color.g, v.Color.b, 100, true, true, 2, true, nil, nil, false)
+					DrawMarker(v.Type, v.Pos.x, v.Pos.y, v.Pos.z, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, v.Size.x, v.Size.y,
+						v.Size.z, v.Color.r, v.Color.g, v.Color.b, 100, true, true, 2, true, nil, nil, false)
 					letSleep = false
 				end
 			end
 		end
-	Wait(Sleep)
+		Wait(Sleep)
 	end
 end)
 
@@ -810,14 +858,13 @@ CreateThread(function()
 		local Sleep = 500
 
 		if ESX.PlayerData.job and ESX.PlayerData.job.name == 'mechanic' then
-
 			local coords = GetEntityCoords(PlayerPedId())
 			local isInMarker = false
 			local currentZone = nil
 
-			for k,v in pairs(Config.Zones) do
-				if(#(coords - v.Pos) < v.Size.x) then
-					Sleep = 0
+			for k, v in pairs(Config.Zones) do
+				if (#(coords - v.Pos) < v.Size.x) then
+					Sleep       = 0
 					isInMarker  = true
 					currentZone = k
 				end
@@ -834,7 +881,7 @@ CreateThread(function()
 				TriggerEvent('esx_mechanicjob:hasExitedMarker', LastZone)
 			end
 		end
-	Wait(Sleep)
+		Wait(Sleep)
 	end
 end)
 
@@ -853,7 +900,7 @@ CreateThread(function()
 		local closestDistance = -1
 		local closestEntity = nil
 
-		for i=1, #trackedEntities, 1 do
+		for i = 1, #trackedEntities, 1 do
 			local object = GetClosestObjectOfType(coords, 3.0, joaat(trackedEntities[i]), false, false, false)
 
 			if DoesEntityExist(object) then
@@ -884,7 +931,7 @@ end)
 -- Key Controls
 CreateThread(function()
 	while true do
-	local sleep = 500
+		local sleep = 500
 		if CurrentAction then
 			sleep = 0
 			if IsControlJustReleased(0, 38) and ESX.PlayerData.job and ESX.PlayerData.job.name == 'mechanic' then
@@ -895,54 +942,53 @@ CreateThread(function()
 				elseif CurrentAction == 'mechanic_craft_menu' then
 					OpenMechanicCraftMenu()
 				elseif CurrentAction == 'delete_vehicle' then
-			if Config.EnableSocietyOwnedVehicles then
+					if Config.EnableSocietyOwnedVehicles then
+						local vehicleProps = ESX.Game.GetVehicleProperties(CurrentActionData.vehicle)
+						TriggerServerEvent('esx_society:putVehicleInGarage', 'mechanic', vehicleProps)
+					else
+						local entityModel = GetEntityModel(CurrentActionData.vehicle)
 
-				local vehicleProps = ESX.Game.GetVehicleProperties(CurrentActionData.vehicle)
-				TriggerServerEvent('esx_society:putVehicleInGarage', 'mechanic', vehicleProps)
-			else
-				local entityModel = GetEntityModel(CurrentActionData.vehicle)
-
-				if entityModel == `flatbed` or	entityModel == `towtruck2` or entityModel == `slamvan3` then
-					TriggerServerEvent('esx_service:disableService', 'mechanic')
-				end
-			end
-		ESX.Game.DeleteVehicle(CurrentActionData.vehicle)
-	elseif CurrentAction == 'remove_entity' then
-		DeleteEntity(CurrentActionData.entity)
+						if entityModel == `flatbed` or entityModel == `towtruck2` or entityModel == `slamvan3` then
+							TriggerServerEvent('esx_service:disableService', 'mechanic')
+						end
+					end
+					ESX.Game.DeleteVehicle(CurrentActionData.vehicle)
+				elseif CurrentAction == 'remove_entity' then
+					DeleteEntity(CurrentActionData.entity)
 				end
 
 				CurrentAction = nil
-			 end
-		 end
+			end
+		end
 		Wait(sleep)
 	end
 end)
 RegisterCommand('mechanicMenu', function()
-		if ESX.PlayerData.job and ESX.PlayerData.job.name == 'mechanic' then
-			OpenMobileMechanicActionsMenu()
-		end
+	if ESX.PlayerData.job and ESX.PlayerData.job.name == 'mechanic' then
+		OpenMobileMechanicActionsMenu()
+	end
 end, false)
 
 
 
 RegisterCommand('mechanicjob', function()
 	local playerPed = PlayerPedId()
-		if ESX.PlayerData.job and ESX.PlayerData.job.name == 'mechanic' then
-			if NPCOnJob then
-				if GetGameTimer() - NPCLastCancel > 5 * 60000 then
-					StopNPCJob(true)
-					NPCLastCancel = GetGameTimer()
-				else
-					ESX.ShowNotification(TranslateCap('wait_five'), "error")
-				end
+	if ESX.PlayerData.job and ESX.PlayerData.job.name == 'mechanic' then
+		if NPCOnJob then
+			if GetGameTimer() - NPCLastCancel > 5 * 60000 then
+				StopNPCJob(true)
+				NPCLastCancel = GetGameTimer()
 			else
-				if IsPedInAnyVehicle(playerPed, false) and IsVehicleModel(GetVehiclePedIsIn(playerPed, false), `flatbed`) then
-					StartNPCJob()
-				else
-					ESX.ShowNotification(TranslateCap('must_in_flatbed'), "error")
-				end
+				ESX.ShowNotification(TranslateCap('wait_five'), "error")
+			end
+		else
+			if IsPedInAnyVehicle(playerPed, false) and IsVehicleModel(GetVehiclePedIsIn(playerPed, false), `flatbed`) then
+				StartNPCJob()
+			else
+				ESX.ShowNotification(TranslateCap('must_in_flatbed'), "error")
 			end
 		end
+	end
 end, false)
 
 RegisterKeyMapping('mechanicMenu', 'Open Mechanic Menu', 'keyboard', 'F6')
