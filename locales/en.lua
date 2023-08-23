@@ -83,4 +83,6 @@ Locales['en'] = {
   ['have_withdrawn']            = 'you have withdrawn x%s %s',
   ['have_deposited']            = 'you have deposited x%s %s',
   ['player_cannot_hold']        = 'you do not have enough free space in your inventory!',
+  ['flipvehicle']        = 'Flip the vehicle',
+  ['vehicle_flipped']        = 'Vehicle ~g~flipped',
 }
