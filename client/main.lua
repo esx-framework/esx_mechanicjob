@@ -944,10 +944,10 @@ if Config.EnableNPCJobs then
 				end
 			end
 	end, false)
-	RegisterKeyMapping('mechanicjob', 'Togggle NPC Job', 'keyboard', 'F6')
+	RegisterKeyMapping('mechanicjob', 'Togggle NPC Job', 'keyboard', Config.ToggleNPCJobs)
 end
 
-RegisterKeyMapping('mechanicMenu', 'Open Mechanic Menu', 'keyboard', 'F6')
+RegisterKeyMapping('mechanicMenu', 'Open Mechanic Menu', 'keyboard', Config.OpenMechanicMenu)
 
 AddEventHandler('esx:onPlayerDeath', function(data) isDead = true end)
 AddEventHandler('esx:onPlayerSpawn', function(spawn) isDead = false end)
