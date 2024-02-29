@@ -1,6 +1,11 @@
 Config                            = {}
 Config.Locale = GetConvar('esx:locale', 'en')
 
+Config.Controls = {
+	mechanicMenu = "F6",
+	toggleNPCJob = "F7"
+}
+
 Config.DrawDistance               = 10.0 -- How close you need to be in order for the markers to be drawn (in GTA units).
 Config.MaxInService               = -1
 Config.EnablePlayerManagement     = true -- Enable society managing.

@@ -558,7 +558,7 @@ AddEventHandler('esx_mechanicjob:onHijack', function()
 		if IsPedInAnyVehicle(playerPed, false) then
 			vehicle = GetVehiclePedIsIn(playerPed, false)
 		else
-			vehicle = GetClosestVehicle(coords.x, coords.y, coords.z, 5.0, 0, 71)
+			vehicle = ESX.Game.GetClosestVehicle(coords)
 		end
 
 		local chance = math.random(100)
@@ -599,7 +599,7 @@ AddEventHandler('esx_mechanicjob:onCarokit', function()
 		if IsPedInAnyVehicle(playerPed, false) then
 			vehicle = GetVehiclePedIsIn(playerPed, false)
 		else
-			vehicle = GetClosestVehicle(coords.x, coords.y, coords.z, 5.0, 0, 71)
+			vehicle = ESX.Game.GetClosestVehicle(coords)
 		end
 
 		if DoesEntityExist(vehicle) then
@@ -626,7 +626,7 @@ AddEventHandler('esx_mechanicjob:onFixkit', function()
 		if IsPedInAnyVehicle(playerPed, false) then
 			vehicle = GetVehiclePedIsIn(playerPed, false)
 		else
-			vehicle = GetClosestVehicle(coords.x, coords.y, coords.z, 5.0, 0, 71)
+			vehicle = ESX.Game.GetClosestVehicle(coords)
 		end
 
 		if DoesEntityExist(vehicle) then
@@ -945,8 +945,8 @@ RegisterCommand('mechanicjob', function()
 		end
 end, false)
 
-RegisterKeyMapping('mechanicMenu', 'Open Mechanic Menu', 'keyboard', 'F6')
-RegisterKeyMapping('mechanicjob', 'Togggle NPC Job', 'keyboard', 'F6')
+RegisterKeyMapping('mechanicMenu', 'Open Mechanic Menu', 'keyboard', Config.Controls.mechanicMenu)
+RegisterKeyMapping('mechanicjob', 'Togggle NPC Job', 'keyboard', Config.Controls.toggleNPCJob)
 
 AddEventHandler('esx:onPlayerDeath', function(data) isDead = true end)
 AddEventHandler('esx:onPlayerSpawn', function(spawn) isDead = false end)
